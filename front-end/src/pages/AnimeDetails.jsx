@@ -1,4 +1,5 @@
 import { useParams, Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 import aot from "../assets/images/aot.jpg";
 import bleach from "../assets/images/bleach.jpg";
@@ -8,8 +9,9 @@ import demonslayer from "../assets/images/demonslayer.jpg";
 import jjk from "../assets/images/jjk.jpg";
 
 function AnimeDetails() {
-
     const { id } = useParams();
+
+    const [savedEpisodes, setSavedEpisodes] = useState([]);
 
     const animeList = [
         {
@@ -139,10 +141,21 @@ function AnimeDetails() {
         (item) => item.id === Number(id)
     );
 
+    useEffect(() => {
+        const episodes =
+            JSON.parse(localStorage.getItem("episodes")) || [];
+
+        const animeEpisodes = episodes.filter(
+            (episode) =>
+                String(episode.animeId) === String(id)
+        );
+
+        setSavedEpisodes(animeEpisodes);
+    }, [id]);
+
     if (!anime) {
         return (
             <div style={styles.notFound}>
-
                 <h1>Anime Not Found</h1>
 
                 <p>Anime ID: {id}</p>
@@ -153,19 +166,14 @@ function AnimeDetails() {
                 >
                     ← Back To Home
                 </Link>
-
             </div>
         );
     }
 
     return (
-
         <main style={styles.page}>
 
-            
             <section style={styles.detailsBox}>
-
-              
 
                 <div>
                     <img
@@ -185,7 +193,6 @@ function AnimeDetails() {
                         {anime.title}
                     </h1>
 
-
                     <div style={styles.info}>
 
                         <span style={styles.infoBox}>
@@ -198,27 +205,22 @@ function AnimeDetails() {
 
                     </div>
 
-
                     <div style={styles.genres}>
 
                         {anime.genres.map((genre) => (
-
                             <span
                                 key={genre}
                                 style={styles.genre}
                             >
                                 {genre}
                             </span>
-
                         ))}
 
                     </div>
 
-
                     <p style={styles.description}>
                         {anime.description}
                     </p>
-
 
                     <Link
                         to="/"
@@ -231,7 +233,6 @@ function AnimeDetails() {
 
             </section>
 
-
             <section style={styles.episodesSection}>
 
                 <p style={styles.label}>
@@ -242,39 +243,82 @@ function AnimeDetails() {
                     Seasons & Episodes
                 </h2>
 
+                {anime.seasons.map((season) => {
 
-                {anime.seasons.map((season) => (
+                    const addedEpisodes =
+                        savedEpisodes.filter(
+                            (episode) =>
+                                Number(episode.season) ===
+                                Number(season.season)
+                        );
 
-                    <div
-                        key={season.season}
-                        style={styles.seasonBox}
-                    >
+                    const addedEpisodeNumbers =
+                        addedEpisodes.map(
+                            (episode) =>
+                                Number(episode.episode)
+                        );
 
-                        <h3 style={styles.seasonTitle}>
-                            Season {season.season}
-                        </h3>
+                    const highestEpisode = Math.max(
+                        season.episodes,
+                        ...addedEpisodeNumbers,
+                        0
+                    );
 
+                    return (
+                        <div
+                            key={season.season}
+                            style={styles.seasonBox}
+                        >
 
-                        <div style={styles.episodeGrid}>
+                            <h3 style={styles.seasonTitle}>
+                                Season {season.season}
+                            </h3>
 
-                            {Array.from(
-                                {
-                                    length: season.episodes
-                                },
-                                (_, index) => (
-                                    <Link key={index}
-                                    to={`/anime/${anime.id}/season/${season.season}/episode/${index}+1`} style={styles.episodeButton}>
-                                        Episode {index+1}
-                                    </Link>
+                            <div style={styles.episodeGrid}>
 
-                                )
-                            )}
+                                {Array.from(
+                                    {
+                                        length: highestEpisode
+                                    },
+                                    (_, index) => {
+
+                                        const episodeNumber =
+                                            index + 1;
+
+                                        const addedEpisode =
+                                            addedEpisodes.find(
+                                                (episode) =>
+                                                    Number(
+                                                        episode.episode
+                                                    ) ===
+                                                    episodeNumber
+                                            );
+
+                                        return (
+                                            <Link
+                                                key={episodeNumber}
+                                                to={`/anime/${anime.id}/season/${season.season}/episode/${episodeNumber}`}
+                                                style={{
+                                                    ...styles.episodeButton,
+                                                    ...(addedEpisode
+                                                        ? styles.newEpisodeButton
+                                                        : {})
+                                                }}
+                                            >
+                                                {addedEpisode
+                                                    ? addedEpisode.title ||
+                                                      `Episode ${episodeNumber}`
+                                                    : `Episode ${episodeNumber}`}
+                                            </Link>
+                                        );
+                                    }
+                                )}
+
+                            </div>
 
                         </div>
-
-                    </div>
-
-                ))}
+                    );
+                })}
 
             </section>
 
@@ -282,9 +326,7 @@ function AnimeDetails() {
     );
 }
 
-
 const styles = {
-
     page: {
         minHeight: "100vh",
         padding: "60px 6% 100px",
@@ -292,7 +334,6 @@ const styles = {
             "radial-gradient(circle at top, rgba(124,58,237,0.18), transparent 45%), #080b14",
         color: "white"
     },
-
 
     detailsBox: {
         maxWidth: "1150px",
@@ -306,7 +347,6 @@ const styles = {
         boxShadow: "0 20px 60px rgba(0,0,0,0.45)"
     },
 
-
     poster: {
         width: "300px",
         height: "430px",
@@ -316,14 +356,12 @@ const styles = {
         boxShadow: "0 15px 35px rgba(0,0,0,0.55)"
     },
 
-
     content: {
         flex: 1,
         display: "flex",
         flexDirection: "column",
         justifyContent: "center"
     },
-
 
     label: {
         color: "#a78bfa",
@@ -333,20 +371,17 @@ const styles = {
         marginBottom: "12px"
     },
 
-
     title: {
         fontSize: "52px",
         lineHeight: "1.1",
         margin: "0 0 20px"
     },
 
-
     info: {
         display: "flex",
         gap: "12px",
         marginBottom: "20px"
     },
-
 
     infoBox: {
         background: "#1b2130",
@@ -356,14 +391,12 @@ const styles = {
         color: "#d7dbea"
     },
 
-
     genres: {
         display: "flex",
         flexWrap: "wrap",
         gap: "9px",
         marginBottom: "25px"
     },
-
 
     genre: {
         background: "rgba(139,92,246,0.15)",
@@ -374,7 +407,6 @@ const styles = {
         fontSize: "13px"
     },
 
-
     description: {
         maxWidth: "700px",
         color: "#aeb6c8",
@@ -382,7 +414,6 @@ const styles = {
         lineHeight: "1.8",
         marginBottom: "25px"
     },
-
 
     backButton: {
         width: "fit-content",
@@ -394,18 +425,15 @@ const styles = {
         textDecoration: "none"
     },
 
-
     episodesSection: {
         maxWidth: "1150px",
         margin: "55px auto 0"
     },
 
-
     episodesTitle: {
         fontSize: "34px",
         margin: "8px 0 35px"
     },
-
 
     seasonBox: {
         background: "#111622",
@@ -416,12 +444,10 @@ const styles = {
         boxShadow: "0 10px 30px rgba(0,0,0,0.25)"
     },
 
-
     seasonTitle: {
         fontSize: "22px",
         marginBottom: "22px"
     },
-
 
     episodeGrid: {
         display: "grid",
@@ -429,7 +455,6 @@ const styles = {
             "repeat(auto-fill, minmax(125px, 1fr))",
         gap: "12px"
     },
-
 
     episodeButton: {
         minHeight: "44px",
@@ -440,9 +465,18 @@ const styles = {
         borderRadius: "8px",
         cursor: "pointer",
         fontSize: "14px",
-        textDecoration:"none"
+        textDecoration: "none",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        textAlign: "center"
     },
 
+    newEpisodeButton: {
+        background: "#7c3aed",
+        color: "white",
+        border: "1px solid #a78bfa"
+    },
 
     primaryButton: {
         display: "inline-block",
@@ -453,7 +487,6 @@ const styles = {
         textDecoration: "none"
     },
 
-
     notFound: {
         minHeight: "70vh",
         display: "flex",
@@ -463,7 +496,6 @@ const styles = {
         gap: "15px",
         color: "white"
     }
-
 };
 
 export default AnimeDetails;
