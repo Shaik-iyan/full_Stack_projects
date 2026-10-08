@@ -7,6 +7,7 @@ import Genres from "./pages/Genres";
 import Login from "./pages/Login";
 import AnimeDetails from "./pages/AnimeDetails";
 import EpisodePlayer from "./pages/EpisodePlayer";
+import AdminDashboard from "./pages/AdminDashboard";
 
 import "./App.css";
 
@@ -42,6 +43,9 @@ function App() {
                     path="/anime/:id/season/:season/episode/:episode"
                     element={<EpisodePlayer />}
                 />
+                <Route 
+                path="/admin"
+                element={<AdminDashboard /> } />
 
             </Routes>
 

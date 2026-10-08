@@ -1,13 +1,32 @@
-import { useState } from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 function Login(){
+    const navigate=useNavigate();
     const [email,setEmail]=useState("");
     const [password,setPassword]=useState("");
-    function handleSubmit(event){
-        event.preventDefault();
-        console.log("Email",email);
-        console.log("Password",password);
-        alert("Login form Submitted");
-    }
+  function handleSubmit(event) {
+  event.preventDefault();
+
+  if (
+    email === "admin@animeverse.com" &&
+    password === "admin123"
+  ) {
+    localStorage.setItem("isAdmin", "true");
+    localStorage.setItem("userEmail", email);
+
+    alert("Admin login successful!");
+
+    navigate("/");
+    return;
+  }
+
+  localStorage.setItem("isAdmin", "false");
+  localStorage.setItem("userEmail", email);
+
+  alert("Login successful!");
+
+  navigate("/");
+}
     return(
         <div style={styles.pageContainer}>
             <div style={styles.loginCard}>
